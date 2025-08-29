@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Query Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .output-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+        }
+
+        .output-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .sql-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            min-height: 60px;
+            border: 2px solid #34495e;
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding: 25px;
+            background: #e8f4f8;
+            border-radius: 15px;
+        }
+
+        .examples h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .example-item {
+            margin: 10px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #3498db;
+        }
+
+        .example-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .example-text {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .copy-btn {
+            background: #27ae60;
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-top: 10px;
+            width: auto;
+            display: inline-block;
+        }
+
+        .copy-btn:hover {
+            background: #229954;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 SQL Query Generator</h1>
+            <p>Transform plain English into SQL queries instantly</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <h3>📝 Query Setup</h3>
+                <div class="grid">
+                    <div class="input-group">
+                        <label for="tableName">Table Name:</label>
+                        <input type="text" id="tableName" placeholder="e.g., users, products, orders" value="users">
+                    </div>
+                    <div class="input-group">
+                        <label for="queryType">Query Type:</label>
+                        <select id="queryType">
+                            <option value="SELECT">SELECT (Retrieve data)</option>
+                            <option value="INSERT">INSERT (Add data)</option>
+                            <option value="UPDATE">UPDATE (Modify data)</option>
+                            <option value="DELETE">DELETE (Remove data)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="plainEnglish">Plain English Query:</label>
+                    <textarea id="plainEnglish" placeholder="e.g., Show all users where age is greater than 25 and city is New York"></textarea>
+                </div>
+
+                <button class="btn" onclick="generateSQL()">🚀 Generate SQL Query</button>
+            </div>
+
+            <div class="output-section" id="outputSection" style="display: none;">
+                <h3>Generated SQL Query:</h3>
+                <div class="sql-output" id="sqlOutput"></div>
+                <div class="tooltip">
+                    <button class="btn copy-btn" onclick="copyToClipboard()">📋 Copy Query</button>
+                    <span class="tooltiptext">Copy to clipboard</span>
+                </div>
+            </div>
+
+            <div class="examples">
+                <h3>💡 Example Queries (Click to try)</h3>
+                <div class="example-item" onclick="loadExample('Show all users where age is greater than 25', 'users', 'SELECT')">
+                    <div class="example-text">Show all users where age is greater than 25</div>
+                </div>
+                <div class="example-item" onclick="loadExample('Get users from New York with salary above 50000', 'employees', 'SELECT')">
+                    <div class="example-text">Get users from New York with salary above 50000</div>
+                </div>
+                <div class="example-item" onclick="loadExample('Add new user John with age 30 and email john@email.com', 'users', 'INSERT')">
+                    <div class="example-text">Add new user John with age 30 and email john@email.com</div>
+                </div>
+                <div class="example-item" onclick="loadExample('Update user salary to 60000 where name is Alice', 'employees', 'UPDATE')">
+                    <div class="example-text">Update user salary to 60000 where name is Alice</div>
+                </div>
+                <div class="example-item" onclick="loadExample('Delete users where age is less than 18', 'users', 'DELETE')">
+                    <div class="example-text">Delete users where age is less than 18</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastGeneratedQuery = '';
+
+        function generateSQL() {
+            const tableName = document.getElementById('tableName').value.trim();
+            const queryType = document.getElementById('queryType').value;
+            const plainEnglish = document.getElementById('plainEnglish').value.trim();
+
+            if (!tableName) {
+                alert('Please enter a table name');
+                return;
+            }
+
+            if (!plainEnglish) {
+                alert('Please enter your query in plain English');
+                return;
+            }
+
+            let sqlQuery = '';
+
+            try {
+                switch (queryType) {
+                    case 'SELECT':
+                        sqlQuery = generateSelectQuery(tableName, plainEnglish);
+                        break;
+                    case 'INSERT':
+                        sqlQuery = generateInsertQuery(tableName, plainEnglish);
+                        break;
+                    case 'UPDATE':
+                        sqlQuery = generateUpdateQuery(tableName, plainEnglish);
+                        break;
+                    case 'DELETE':
+                        sqlQuery = generateDeleteQuery(tableName, plainEnglish);
+                        break;
+                }
+
+                displayResult(sqlQuery);
+            } catch (error) {
+                alert('Error generating query: ' + error.message);
+            }
+        }
+
+        function generateSelectQuery(tableName, text) {
+            let query = `SELECT `;
+            
+            // Check for specific columns
+            const columnsMatch = text.match(/show|get|select|find/i);
+            if (text.includes('name') || text.includes('email') || text.includes('id')) {
+                const columns = [];
+                if (text.includes('name')) columns.push('name');
+                if (text.includes('email')) columns.push('email');
+                if (text.includes('id')) columns.push('id');
+                if (text.includes('age')) columns.push('age');
+                if (text.includes('salary')) columns.push('salary');
+                if (text.includes('city')) columns.push('city');
+                
+                query += columns.length > 0 ? columns.join(', ') : '*';
+            } else {
+                query += '*';
+            }
+            
+            query += ` FROM ${tableName}`;
+            
+            // Add WHERE conditions
+            const whereConditions = parseWhereConditions(text);
+            if (whereConditions) {
+                query += ` WHERE ${whereConditions}`;
+            }
+            
+            // Add ORDER BY
+            if (text.match(/order by|sort by/i)) {
+                const orderMatch = text.match(/order by (\w+)|sort by (\w+)/i);
+                if (orderMatch) {
+                    query += ` ORDER BY ${orderMatch[1] || orderMatch[2]}`;
+                    if (text.match(/descending|desc/i)) {
+                        query += ' DESC';
+                    }
+                }
+            }
+            
+            return query + ';';
+        }
+
+        function generateInsertQuery(tableName, text) {
+            let query = `INSERT INTO ${tableName} `;
+            
+            // Extract column-value pairs
+            const values = {};
+            
+            // Common patterns for INSERT
+            const patterns = [
+                /name (?:is |= |:)?[\'"']?([^\'",\s]+)[\'"']?/i,
+                /age (?:is |= |:)?(\d+)/i,
+                /email (?:is |= |:)?[\'"']?([^\'",\s]+)[\'"']?/i,
+                /salary (?:is |= |:)?(\d+)/i,
+                /city (?:is |= |:)?[\'"']?([^\'",\s]+)[\'"']?/i
+            ];
+            
+            patterns.forEach((pattern, index) => {
+                const match = text.match(pattern);
+                if (match) {
+                    const columns = ['name', 'age', 'email', 'salary', 'city'];
+                    values[columns[index]] = match[1];
+                }
+            });
+            
+            if (Object.keys(values).length === 0) {
+                throw new Error('No values found to insert. Please specify column values like "name John, age 30"');
+            }
+            
+            const columns = Object.keys(values);
+            const valuesList = Object.values(values).map(v => 
+                isNaN(v) ? `'${v}'` : v
+            );
+            
+            query += `(${columns.join(', ')}) VALUES (${valuesList.join(', ')});`;
+            
+            return query;
+        }
+
+        function generateUpdateQuery(tableName, text) {
+            let query = `UPDATE ${tableName} SET `;
+            
+            // Extract SET values
+            const setValues = [];
+            const setPatterns = [
+                /(?:set |update )?name (?:to |= |:)?[\'"']?([^\'",\s]+)[\'"']?/i,
+                /(?:set |update )?age (?:to |= |:)?(\d+)/i,
+                /(?:set |update )?email (?:to |= |:)?[\'"']?([^\'",\s]+)[\'"']?/i,
+                /(?:set |update )?salary (?:to |= |:)?(\d+)/i,
+                /(?:set |update )?city (?:to |= |:)?[\'"']?([^\'",\s]+)[\'"']?/i
+            ];
+            
+            setPatterns.forEach((pattern, index) => {
+                const match = text.match(pattern);
+                if (match) {
+                    const columns = ['name', 'age', 'email', 'salary', 'city'];
+                    const value = isNaN(match[1]) ? `'${match[1]}'` : match[1];
+                    setValues.push(`${columns[index]} = ${value}`);
+                }
+            });
+            
+            if (setValues.length === 0) {
+                throw new Error('No update values found. Please specify what to update like "set salary to 60000"');
+            }
+            
+            query += setValues.join(', ');
+            
+            // Add WHERE conditions
+            const whereConditions = parseWhereConditions(text);
+            if (whereConditions) {
+                query += ` WHERE ${whereConditions}`;
+            }
+            
+            return query + ';';
+        }
+
+        function generateDeleteQuery(tableName, text) {
+            let query = `DELETE FROM ${tableName}`;
+            
+            // Add WHERE conditions
+            const whereConditions = parseWhereConditions(text);
+            if (whereConditions) {
+                query += ` WHERE ${whereConditions}`;
+            } else {
+                throw new Error('DELETE requires WHERE conditions for safety. Please specify conditions.');
+            }
+            
+            return query + ';';
+        }
+
+        function parseWhereConditions(text) {
+            const conditions = [];
+            
+            // Age conditions
+            const ageGreater = text.match(/age (?:is )?(?:greater than|>|above) (\d+)/i);
+            const ageLess = text.match(/age (?:is )?(?:less than|<|below) (\d+)/i);
+            const ageEquals = text.match(/age (?:is |= |equals? )?(\d+)/i);
+            
+            if (ageGreater) conditions.push(`age > ${ageGreater[1]}`);
+            else if (ageLess) conditions.push(`age < ${ageLess[1]}`);
+            else if (ageEquals && !ageGreater && !ageLess) conditions.push(`age = ${ageEquals[1]}`);
+            
+            // Name conditions
+            const nameEquals = text.match(/name (?:is |= |equals? )?[\'"']?([^\'",\s]+)[\'"']?/i);
+            if (nameEquals) conditions.push(`name = '${nameEquals[1]}'`);
+            
+            // City conditions
+            const cityEquals = text.match(/(?:city|from) (?:is |= |equals? )?[\'"']?([^\'",\s]+)[\'"']?/i);
+            if (cityEquals) conditions.push(`city = '${cityEquals[1]}'`);
+            
+            // Email conditions
+            const emailEquals = text.match(/email (?:is |= |equals? )?[\'"']?([^\'",\s@]+@[^\'",\s]+)[\'"']?/i);
+            if (emailEquals) conditions.push(`email = '${emailEquals[1]}'`);
+            
+            // Salary conditions
+            const salaryGreater = text.match(/salary (?:is )?(?:greater than|>|above) (\d+)/i);
+            const salaryLess = text.match(/salary (?:is )?(?:less than|<|below) (\d+)/i);
+            const salaryEquals = text.match(/salary (?:is |= |equals? )?(\d+)/i);
+            
+            if (salaryGreater) conditions.push(`salary > ${salaryGreater[1]}`);
+            else if (salaryLess) conditions.push(`salary < ${salaryLess[1]}`);
+            else if (salaryEquals && !salaryGreater && !salaryLess) conditions.push(`salary = ${salaryEquals[1]}`);
+            
+            return conditions.length > 0 ? conditions.join(' AND ') : null;
+        }
+
+        function displayResult(query) {
+            lastGeneratedQuery = query;
+            document.getElementById('sqlOutput').textContent = query;
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyToClipboard() {
+            if (lastGeneratedQuery) {
+                navigator.clipboard.writeText(lastGeneratedQuery).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Copied!';
+                    btn.style.background = '#27ae60';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '#27ae60';
+                    }, 2000);
+                }).catch(() => {
+                    alert('Copy failed. Please select and copy manually.');
+                });
+            }
+        }
+
+        function loadExample(text, table, type) {
+            document.getElementById('plainEnglish').value = text;
+            document.getElementById('tableName').value = table;
+            document.getElementById('queryType').value = type;
+            
+            // Auto-generate after loading example
+            setTimeout(() => {
+                generateSQL();
+            }, 100);
+        }
+
+        // Auto-focus on the text area when page loads
+        window.onload = function() {
+            document.getElementById('plainEnglish').focus();
+        };
+
+        // Allow Enter key to generate query
+        document.getElementById('plainEnglish').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                generateSQL();
+            }
+        });
+    </script>
+</body>
+</html>
